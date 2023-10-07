@@ -25,7 +25,7 @@ async def create_coil(new_coil: CoilSchemaCreate, session: AsyncSession = Depend
 
     return BaseCoilSchema(id=id)
 
-@router.delete("/", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_coil(id: int, session: AsyncSession = Depends(get_async_session)):
     if not await coil_exists(id, session):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Coil with {id=} not found")
