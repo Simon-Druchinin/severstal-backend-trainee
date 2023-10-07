@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
-from sqlalchemy import insert, select
+from sqlalchemy import insert, select, delete, exists
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database import get_async_session, async_session_maker
@@ -20,6 +20,19 @@ async def create_coil(new_coil: CoilSchemaCreate, session: AsyncSession = Depend
     result = await session.execute(statement)
     await session.commit()
 
-    id = result.first()[0]
+    id = result.scalar()
 
     return BaseCoilSchema(id=id)
+
+@router.delete("/", status_code=status.HTTP_204_NO_CONTENT)
+async def deleye_coil(id: int, session: AsyncSession = Depends(get_async_session)):
+    query = select(exists().where(Coil.id == id))
+    result = await session.execute(query)
+    coil_exists = result.scalar()
+
+    if not coil_exists:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Coil with {id=} not found")
+
+    statement = delete(Coil).where(Coil.id == id)
+    result = await session.execute(statement)
+    await session.commit()
