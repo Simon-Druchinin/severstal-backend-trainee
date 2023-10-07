@@ -1,0 +1,32 @@
+version: '3.9'
+
+services:
+  db:
+    container_name: warehouse_db
+    image: postgres:15.4-bookworm
+    volumes:
+      - /home/${USER}/warehouse_postgres_data:/var/lib/postgresql/data/
+    ports:
+      - "5433:5432"
+    env_file:
+      - .env
+    
+  # app:
+  #   build:
+  #     context: .
+  #   env_file:
+  #     - .env
+  #   container_name: fastapi_warehouse_app
+  #   command: ["/fastapi_warehouse_app/docker/app.sh"]
+  #   ports:
+  #     - "8001:8000"
+  #   depends_on:
+  #     - db
+  
+  pgadmin:
+    container_name: warehouse_pgadmin
+    image: dpage/pgadmin4
+    env_file:
+      - .env
+    ports:
+     - "5051:80"
