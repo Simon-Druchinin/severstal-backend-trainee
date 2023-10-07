@@ -1,8 +1,12 @@
 from pydantic import BaseModel
 
-class MessageSchemaCreate(BaseModel):
-    message: str
-    client_id: int
 
-class MessageSchemaView(MessageSchemaCreate):
+class BaseCoilSchema(BaseModel):
     id: int
+
+class CoilSchemaCreate(BaseModel):
+    length: int
+    weight: int
+
+class CoilSchemaRead(BaseCoilSchema, CoilSchemaCreate):
+    pass

@@ -1,14 +1,14 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+
+from src.coil.router import router as coil_router
 
 
 app = FastAPI(
-    title="Warehouse metal coil app"
+    title="Warehouse metal coil app",
 )
 
-# routers = (
-#     pages_router,
-#     chat_router,
-# )
+routers = (
+    coil_router,
+)
 
-# [app.include_router(router) for router in routers]
+[app.include_router(router) for router in routers]
