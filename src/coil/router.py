@@ -2,14 +2,16 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from sqlalchemy import insert, select, update, and_
+from sqlalchemy import insert, select, update, and_, func
+from sqlalchemy.orm import aliased
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database import get_async_session, async_session_maker
 
 from src.coil.models import Coil
-from src.coil.schemas import CoilSchemaCreate, BaseCoilSchema, CoilSchemaRead, CoilSchemaGetParams, DateRangeSchema
-from src.coil.servises import coil_exists, is_coil_deleted
+from src.coil.schemas import (CoilSchemaCreate, BaseCoilSchema, CoilSchemaRead,
+                              CoilSchemaGetParams, DateRangeSchema, CoilStatsSchema)
+from src.coil.servises import coil_exists, get_coil_base_stats, get_coil_date_stats, is_coil_deleted, get_date_range_filter
 
 
 router = APIRouter(
@@ -74,5 +76,24 @@ async def get_coil(
 async def get_coil_stats(
     date_range: DateRangeSchema = Depends(DateRangeSchema),
     session: AsyncSession = Depends(get_async_session)
-):
-    pass
+) -> CoilStatsSchema:
+    
+    coil_stats = await get_coil_base_stats(date_range, session)
+    coil_date_stats = await get_coil_date_stats(date_range, session)
+
+    return CoilStatsSchema(
+        amount = coil_stats["amount"],
+        deleted_amount = coil_stats["deleted_amount"],
+        average_length = round(coil_stats["total_length"] / coil_stats["amount"], 2),
+        average_weight = round(coil_stats["total_weight"] / coil_stats["amount"], 2),
+        max_length = coil_stats["max_length"],
+        min_length = coil_stats["min_length"],
+        max_weight = coil_stats["max_weight"],
+        min_weight = coil_stats["min_weight"],
+        total_weight = coil_stats["total_weight"],
+        creation_max_time_gap = coil_date_stats["creation_max_time_gap"],
+        creation_min_time_gap = coil_date_stats["creation_min_time_gap"],
+        deletion_max_time_gap = coil_date_stats["deletion_max_time_gap"],
+        deletion_min_time_gap = coil_date_stats["deletion_min_time_gap"],
+    )
+

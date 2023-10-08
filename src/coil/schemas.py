@@ -1,5 +1,5 @@
 from typing import Optional
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 from pydantic import BaseModel, model_validator, PositiveInt
 
@@ -84,3 +84,26 @@ class CoilSchemaGetParams(BaseModel):
                 
         return field_values
 
+class CoilStatsSchema(BaseModel):
+    amount: int
+    deleted_amount: int
+    average_length: float
+    average_weight: float
+    max_length: int
+    min_length: int
+    max_weight: int
+    min_weight: int
+    total_weight: int
+    creation_max_time_gap: datetime | timedelta | str
+    creation_min_time_gap: datetime | timedelta | str
+    deletion_max_time_gap: datetime | timedelta | str
+    deletion_min_time_gap: datetime | timedelta | str
+
+    @model_validator(mode='after')
+    def validate_fields_dependency(cls, field_values):
+        for field_name in cls.__fields__.keys():
+            value = getattr(field_values, field_name)
+            if isinstance(value, timedelta):
+                setattr(field_values, field_name, str(value))
+
+        return field_values
