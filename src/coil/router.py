@@ -1,13 +1,15 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from sqlalchemy import insert, select, delete, and_
+from sqlalchemy import insert, select, update, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database import get_async_session, async_session_maker
 
 from src.coil.models import Coil
 from src.coil.schemas import CoilSchemaCreate, BaseCoilSchema, CoilSchemaRead, CoilSchemaGetParams
-from src.coil.servises import coil_exists
+from src.coil.servises import coil_exists, is_coil_deleted
 
 
 router = APIRouter(
@@ -28,9 +30,11 @@ async def create_coil(new_coil: CoilSchemaCreate, session: AsyncSession = Depend
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_coil(id: int, session: AsyncSession = Depends(get_async_session)):
     if not await coil_exists(id, session):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Coil with {id=} not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"msg": f"Coil with {id=} not found"})
+    elif await is_coil_deleted(id, session):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"msg": f"Coil with {id=} was already deleted"})
 
-    statement = delete(Coil).where(Coil.id == id)
+    statement = update(Coil).where(Coil.id == id).values(deleted_at=datetime.utcnow())
     await session.execute(statement)
     await session.commit()
 
