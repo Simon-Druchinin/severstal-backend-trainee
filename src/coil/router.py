@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from sqlalchemy import insert, select, delete
+from sqlalchemy import insert, select, delete, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database import get_async_session, async_session_maker
 
 from src.coil.models import Coil
-from src.coil.schemas import CoilSchemaCreate, BaseCoilSchema
+from src.coil.schemas import CoilSchemaCreate, BaseCoilSchema, CoilSchemaRead, CoilSchemaGetParams
 from src.coil.servises import coil_exists
 
 
@@ -33,3 +33,35 @@ async def delete_coil(id: int, session: AsyncSession = Depends(get_async_session
     statement = delete(Coil).where(Coil.id == id)
     await session.execute(statement)
     await session.commit()
+
+@router.get("/")
+async def get_coil(
+    range_params: CoilSchemaGetParams = Depends(CoilSchemaGetParams),
+    session: AsyncSession = Depends(get_async_session)
+) -> list[CoilSchemaRead]:
+    range_params: dict = range_params.model_dump(exclude_none=True)
+    
+    filters = [
+        and_(
+            getattr(Coil, from_field.replace('from_', '', 1)) >= range_params[from_field],
+            getattr(Coil, to_field.replace('to_', '', 1)) <= range_params[to_field]
+        )
+        for from_field, to_field in CoilSchemaGetParams.dependant_fields.items() if range_params.get(from_field)
+    ]
+    
+    query = select(Coil).where(and_(*filters))
+    result = await session.execute(query)
+
+    coils = [
+        CoilSchemaRead(
+            id=coil[0].id,
+            length=coil[0].length,
+            weight=coil[0].weight,
+            created_at=coil[0].created_at,
+            deleted_at=coil[0].deleted_at,
+
+        )
+        for coil in result.all()
+    ]
+
+    return coils
