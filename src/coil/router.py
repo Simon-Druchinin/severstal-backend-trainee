@@ -79,6 +79,13 @@ async def get_coil_stats(
 ) -> CoilStatsSchema:
     
     coil_stats = await get_coil_base_stats(date_range, session)
+
+    if coil_stats["amount"] == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"msg": f"No data was found between {date_range.from_date} and {date_range.to_date}"}
+        )
+    
     coil_date_stats = await get_coil_date_stats(date_range, session)
 
     return CoilStatsSchema(

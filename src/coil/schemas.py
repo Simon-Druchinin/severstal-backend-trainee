@@ -94,10 +94,10 @@ class CoilStatsSchema(BaseModel):
     max_weight: int
     min_weight: int
     total_weight: int
-    creation_max_time_gap: datetime | timedelta | str
-    creation_min_time_gap: datetime | timedelta | str
-    deletion_max_time_gap: datetime | timedelta | str
-    deletion_min_time_gap: datetime | timedelta | str
+    creation_max_time_gap: Optional[timedelta | str] = None
+    creation_min_time_gap: Optional[timedelta | str] = None
+    deletion_max_time_gap: Optional[timedelta | str] = None
+    deletion_min_time_gap: Optional[timedelta | str] = None
 
     @model_validator(mode='after')
     def validate_fields_dependency(cls, field_values):
