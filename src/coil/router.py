@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.database import get_async_session, async_session_maker
 
 from src.coil.models import Coil
-from src.coil.schemas import CoilSchemaCreate, BaseCoilSchema, CoilSchemaRead, CoilSchemaGetParams
+from src.coil.schemas import CoilSchemaCreate, BaseCoilSchema, CoilSchemaRead, CoilSchemaGetParams, DateRangeSchema
 from src.coil.servises import coil_exists, is_coil_deleted
 
 
@@ -69,3 +69,10 @@ async def get_coil(
     ]
 
     return coils
+
+@router.get("/stats")
+async def get_coil_stats(
+    date_range: DateRangeSchema = Depends(DateRangeSchema),
+    session: AsyncSession = Depends(get_async_session)
+):
+    pass

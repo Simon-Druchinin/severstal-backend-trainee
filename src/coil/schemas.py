@@ -5,6 +5,8 @@ from pydantic import BaseModel, model_validator, PositiveInt
 
 from fastapi.exceptions import RequestValidationError
 
+from src.coil.utils import date_to_datetime
+
 
 class BaseCoilSchema(BaseModel):
     id: int
@@ -16,6 +18,22 @@ class CoilSchemaCreate(BaseModel):
 class CoilSchemaRead(CoilSchemaCreate, BaseCoilSchema):
     created_at: datetime
     deleted_at: Optional[datetime] = None
+
+class DateRangeSchema(BaseModel):
+    from_date: date | datetime
+    to_date: date | datetime
+    
+    @model_validator(mode='after')
+    def validate_fields_dependency(cls, field_values):
+        for field_name in cls.__fields__.keys():
+            value = getattr(field_values, field_name)
+            if isinstance(value, date):
+                formated_date = date_to_datetime(value, field_name.startswith("to_"))
+                setattr(field_values, field_name, formated_date)
+        if field_values.from_date > field_values.to_date:
+            raise RequestValidationError("from_date is greater than to_date")
+        return field_values
+        
 
 class CoilSchemaGetParams(BaseModel):
     from_id: Optional[PositiveInt] = None
@@ -29,12 +47,6 @@ class CoilSchemaGetParams(BaseModel):
     from_deleted_at: Optional[date | datetime] = None
     to_deleted_at: Optional[date | datetime] = None
 
-
-    @staticmethod
-    def date_to_datetime(field_value: date, to_max_time: bool = False) -> datetime:
-        time = datetime.max.time() if to_max_time else datetime.min.time()
-        field_value = datetime.combine(field_value, time)
-        return field_value
 
     @classmethod
     @property
@@ -60,11 +72,11 @@ class CoilSchemaGetParams(BaseModel):
             
             if data[from_field] and data[to_field]:
                 if isinstance(data[from_field], date):
-                    data[from_field] = cls.date_to_datetime(data[from_field], from_field.startswith("to_"))
+                    data[from_field] = date_to_datetime(data[from_field], from_field.startswith("to_"))
                     setattr(field_values, from_field, data[from_field])
 
                 if isinstance(data[to_field], date):
-                    data[to_field] = cls.date_to_datetime(data[to_field], to_field.startswith("to_"))
+                    data[to_field] = date_to_datetime(data[to_field], to_field.startswith("to_"))
                     setattr(field_values, to_field, data[to_field])
 
                 if data[from_field] > data[to_field]:
