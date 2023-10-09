@@ -22,22 +22,22 @@ services:
     env_file:
       - .env.test
     
-  # app:
-  #   build:
-  #     context: .
-  #   env_file:
-  #     - .env
-  #   container_name: fastapi_warehouse_app
-  #   command: ["/fastapi_warehouse_app/docker/app.sh"]
-  #   ports:
-  #     - "8001:8000"
-  #   depends_on:
-  #     - db
-  
-  pgadmin:
-    container_name: warehouse_pgadmin
-    image: dpage/pgadmin4
+  app:
+    build:
+      context: .
     env_file:
       - .env
+    container_name: fastapi_warehouse_app
+    command: ["/fastapi_warehouse_app/docker/app.sh"]
     ports:
-     - "5051:80"
+      - "8001:8000"
+    depends_on:
+      - db
+  
+  # pgadmin:
+  #   container_name: warehouse_pgadmin
+  #   image: dpage/pgadmin4
+  #   env_file:
+  #     - .env
+  #   ports:
+  #    - "5051:80"
