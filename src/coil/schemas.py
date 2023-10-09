@@ -25,7 +25,7 @@ class DateRangeSchema(BaseModel):
     
     @model_validator(mode='after')
     def validate_fields_dependency(cls, field_values):
-        for field_name in cls.__fields__.keys():
+        for field_name in cls.model_fields.keys():
             value = getattr(field_values, field_name)
             if isinstance(value, date):
                 formated_date = date_to_datetime(value, field_name.startswith("to_"))
@@ -105,7 +105,7 @@ class CoilStatsSchema(BaseModel):
 
     @model_validator(mode='after')
     def validate_fields_dependency(cls, field_values):
-        for field_name in cls.__fields__.keys():
+        for field_name in cls.model_fields.keys():
             value = getattr(field_values, field_name)
             if isinstance(value, timedelta):
                 setattr(field_values, field_name, str(value))
