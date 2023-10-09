@@ -64,3 +64,17 @@ async def get_coil_date_stats(date_range: DateRangeSchema, session: AsyncSession
     date_stats = dict(zip(result.keys(), result.first()))
 
     return date_stats
+
+async def get_coil_daily_stats(date_range: DateRangeSchema, session: AsyncSession) -> list[dict]:
+    query = select(
+        func.date(Coil.created_at).label("day"),
+        func.count().label("amount"),
+        func.sum(Coil.weight).label("total_weight")
+    ).select_from(Coil).where(
+        get_date_range_filter(Coil, date_range)
+    ).group_by(func.date(Coil.created_at))
+
+    result = await session.execute(query)
+    coil_daily_stats = [dict(zip(result.keys(), row)) for row in result.all()]
+
+    return coil_daily_stats

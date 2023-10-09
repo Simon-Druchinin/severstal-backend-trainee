@@ -2,16 +2,16 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from sqlalchemy import insert, select, update, and_, func
-from sqlalchemy.orm import aliased
+from sqlalchemy import insert, select, update, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.database import get_async_session, async_session_maker
+from src.database import get_async_session
 
 from src.coil.models import Coil
 from src.coil.schemas import (CoilSchemaCreate, BaseCoilSchema, CoilSchemaRead,
                               CoilSchemaGetParams, DateRangeSchema, CoilStatsSchema)
-from src.coil.servises import coil_exists, get_coil_base_stats, get_coil_date_stats, is_coil_deleted, get_date_range_filter
+from src.coil.servises import (coil_exists, get_coil_base_stats, get_coil_date_stats,
+                               is_coil_deleted, get_coil_daily_stats)
 
 
 router = APIRouter(
@@ -87,6 +87,7 @@ async def get_coil_stats(
         )
     
     coil_date_stats = await get_coil_date_stats(date_range, session)
+    coil_daily_stats = await get_coil_daily_stats(date_range, session)
 
     return CoilStatsSchema(
         amount = coil_stats["amount"],
@@ -102,5 +103,8 @@ async def get_coil_stats(
         creation_min_time_gap = coil_date_stats["creation_min_time_gap"],
         deletion_max_time_gap = coil_date_stats["deletion_max_time_gap"],
         deletion_min_time_gap = coil_date_stats["deletion_min_time_gap"],
+        max_amount_day = max(coil_daily_stats, key=lambda x: x['amount'])['day'],
+        min_amount_day = min(coil_daily_stats, key=lambda x: x['amount'])['day'],
+        max_total_weight_day = max(coil_daily_stats, key=lambda x: x['total_weight'])['day'],
+        min_total_weight_day = min(coil_daily_stats, key=lambda x: x['total_weight'])['day'],
     )
-
