@@ -122,13 +122,26 @@ async def test_get_coil(query_params, expected_status_code, expected_amount, asy
 @pytest.mark.parametrize(
     "from_date, to_date, expected_status_code, expected_values",
     [
-        ("2023-01-01", "2023-12-31", 200, 1),
-        ("2023-01-01", "2023-12-31", 200, 2),
-        # ("2023-01-01", "2023-12-31", 422, None),
-        # ("2023-01-01", "2023-12-31", 422, None),
-        # ("2023-01-01", "2023-12-31", 422, None),
+        ("2023-01-01", "2023-12-31", 200, {
+            "amount": 3,
+            "deleted_amount": 0,
+            "average_length": 38.33,
+            "average_weight": 383.33,
+            "max_length": 100,
+            "min_length": 5,
+            "max_weight": 1000,
+            "min_weight": 50,
+            "total_weight": 1150,
+        }),
+        ("2000-01-01", "2000-12-31", 404, None),
     ]
 )        
 async def test_get_coil_stats(from_date, to_date, expected_status_code, expected_values, async_client: AsyncClient, clear_coils_table, create_coils):
     response: Response = await async_client.get(f"/api/coil/stats?from_date={from_date}&to_date={to_date}")
     assert response.status_code == expected_status_code
+    
+    if expected_values:
+        response_data = response.json()
+        
+        for key, value in expected_values.items():
+            assert response_data[key] == value
