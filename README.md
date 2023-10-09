@@ -9,6 +9,11 @@
 docker compose up --build
 ```
 
+### Как запустить тесты:
+```bash
+pytest tests/
+```
+
 ---
 ### Routes (base /api):
 
