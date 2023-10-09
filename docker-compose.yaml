@@ -10,6 +10,17 @@ services:
       - "5433:5432"
     env_file:
       - .env
+  
+  test_db:
+    container_name: test_warehouse_db
+    image: postgres:15.4-bookworm
+    restart: always
+    volumes:
+      - /home/${USER}/test_warehouse_postgres_data:/var/lib/postgresql/data/
+    ports:
+      - "6000:5432"
+    env_file:
+      - .env.test
     
   # app:
   #   build:
