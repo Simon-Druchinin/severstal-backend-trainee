@@ -4,7 +4,6 @@ from dataclasses import dataclass
 
 
 load_dotenv()
-load_dotenv(".env.test")
 
 @dataclass
 class DBConfig:
@@ -28,15 +27,5 @@ config = Config(
         PASSWORD=os.environ.get("DB_PASS"),
         USER=os.environ.get("DB_USER"),
         NAME=os.environ.get("DB_NAME")
-    )
-)
-
-test_config = Config(
-    db=DBConfig(
-        HOST=os.environ.get("DB_HOST_TEST"),
-        PORT=os.environ.get("DB_PORT_TEST"),
-        PASSWORD=os.environ.get("DB_PASS_TEST"),
-        USER=os.environ.get("DB_USER_TEST"),
-        NAME=os.environ.get("DB_NAME_TEST")
     )
 )

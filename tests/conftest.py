@@ -11,10 +11,10 @@ from sqlalchemy.pool import NullPool
 
 from src.main import app
 from src.database import get_async_session, metadata
-from src.config import test_config
+from src.config import config
 
 
-engine_test = create_async_engine(test_config.db.URL, poolclass=NullPool)
+engine_test = create_async_engine(config.db.URL, poolclass=NullPool)
 async_session_maker = sessionmaker(engine_test, class_=AsyncSession, expire_on_commit=False)
 metadata.bind = engine_test
 
@@ -43,6 +43,6 @@ def event_loop(request):
 client = TestClient(app)
 
 @pytest.fixture(scope="session")
-async def get_async_client() -> AsyncGenerator[AsyncClient, None]:
+async def async_client() -> AsyncGenerator[AsyncClient, None]:
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         yield async_client

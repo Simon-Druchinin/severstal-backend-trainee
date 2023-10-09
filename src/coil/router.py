@@ -19,7 +19,7 @@ router = APIRouter(
     tags=["Coil"]
 )
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED)
 async def create_coil(new_coil: CoilSchemaCreate, session: AsyncSession = Depends(get_async_session)) -> BaseCoilSchema:
     statement = insert(Coil).values(**new_coil.model_dump()).returning(Coil.id)
     result = await session.execute(statement)
@@ -40,7 +40,7 @@ async def delete_coil(id: int, session: AsyncSession = Depends(get_async_session
     await session.execute(statement)
     await session.commit()
 
-@router.get("/")
+@router.get("")
 async def get_coil(
     range_params: CoilSchemaGetParams = Depends(CoilSchemaGetParams),
     session: AsyncSession = Depends(get_async_session)
